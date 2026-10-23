@@ -450,7 +450,7 @@
                     <p class="text-xs text-gray-400 mt-1">مدیریت اشتراک‌ها، سفارشات و لینک‌های اتصال</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 px-3 py-1.5 rounded-xl font-mono" id="user-display-phone">کاربر مهمان</span>
+                    <span class="text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 px-3 py-1.5 rounded-xl font-mono" id="user-display-phone">آیدی تلگرام ثبت نشده</span>
                     <button onclick="logoutUser()" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 px-3 py-1.5 rounded-xl transition">پاک‌کردن اطلاعات ذخیره‌شده</button>
                 </div>
             </div>
@@ -560,7 +560,7 @@
                             <thead class="bg-gray-900/80 text-gray-400 font-medium border-b border-gray-800">
                                 <tr>
                                     <th class="p-4">کد پیگیری</th>
-                                    <th class="p-4">شماره موبایل</th>
+                                    <th class="p-4">آیدی تلگرام</th>
                                     <th class="p-4">پلن</th>
                                     <th class="p-4">مبلغ</th>
                                     <th class="p-4">رسید</th>
@@ -740,7 +740,7 @@
             <!-- Order Form -->
             <form id="form-checkout" onsubmit="submitOrder(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs text-gray-300 mb-1">شماره موبایل (جهت پیگیری و دریافت اشتراک)</label>
+                    <label class="block text-xs text-gray-300 mb-1">آیدی تلگرام (برای پیگیری سفارش و دریافت اشتراک)</label>
                     <input type="text" id="input-phone" required placeholder="@YourTelegramID" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 font-mono dir-ltr">
                 </div>
 
@@ -988,12 +988,12 @@
             localStorage.setItem('netshield_settings', JSON.stringify(settings));
         }
 
-        function getCurrentUserPhone() {
+        function getCurrentUserTelegram() {
             return localStorage.getItem('netshield_user_telegram') || '';
         }
 
-        function setCurrentUserPhone(phone) {
-            localStorage.setItem('netshield_user_telegram', phone);
+        function setCurrentUserTelegram(telegramId) {
+            localStorage.setItem('netshield_user_telegram', telegramId);
         }
 
         // Selected plan for active checkout flow
@@ -1188,8 +1188,8 @@
             document.getElementById('input-receipt').required = !isFreePlan;
             document.querySelector('#form-checkout button[type="submit"] span').innerText = isFreePlan ? 'ثبت سفارش رایگان' : 'ثبت سفارش و ارسال رسید';
 
-            // Pre-fill phone if stored
-            const storedPhone = getCurrentUserPhone();
+            // پیش‌پرکردن آیدی تلگرام ذخیره‌شده
+            const storedPhone = getCurrentUserTelegram();
             if (storedPhone) {
                 document.getElementById('input-phone').value = storedPhone;
             }
@@ -1254,7 +1254,7 @@
                     throw result.error;
                 }
                 const row = Array.isArray(result.data) ? result.data[0] : result.data;
-                setCurrentUserPhone('@' + telegram);
+                setCurrentUserTelegram('@' + telegram);
                 closeModal('modal-checkout');
                 document.getElementById('form-checkout').reset();
                 document.getElementById('receipt-preview-container').classList.add('hidden');
@@ -1273,7 +1273,7 @@
         // USER DASHBOARD LOGIC
         // -------------------------------------------------------------
 
-        function renderUserDashboard(){document.getElementById('user-display-phone').textContent=getCurrentUserPhone()||'کاربر';var tg=localStorage.getItem('netshield_user_telegram')||getCurrentUserPhone()||'';var field=document.getElementById('track-telegram-id');if(field)field.value=tg;nsTracked=null;nsRenderTracked();}
+        function renderUserDashboard(){document.getElementById('user-display-phone').textContent=getCurrentUserTelegram()||'کاربر';var tg=localStorage.getItem('netshield_user_telegram')||getCurrentUserTelegram()||'';var field=document.getElementById('track-telegram-id');if(field)field.value=tg;nsTracked=null;nsRenderTracked();}
  async function trackOrderSubmit(e){e.preventDefault();var tg=document.getElementById('track-telegram-id').value.trim();if(!/^@?[A-Za-z0-9_]{5,32}$/.test(tg)){showToast('آیدی تلگرام معتبر نیست.','error');return;}if(tg.charAt(0)!=='@')tg='@'+tg;localStorage.setItem('netshield_user_telegram',tg);var b=document.querySelector('#form-track-order button[type="submit"]');b.disabled=true;try{var r=await nsSb.rpc('track_vpn_orders_by_telegram',{p_telegram_username:tg});if(r.error)throw r.error;var rows=Array.isArray(r.data)?r.data:[];nsTracked=rows[0]||null;nsRenderTracked();if(!nsTracked)showToast('سفارشی با این آیدی پیدا نشد.','error');else showToast('وضعیت سفارش نمایش داده شد.','success');}catch(x){console.error(x);showToast('پیگیری انجام نشد؛ دوباره تلاش کن.','error');}finally{b.disabled=false;}}
  function nsRenderTracked(){var s=document.getElementById('user-active-subscriptions'),t=document.getElementById('user-orders-table'),o=nsTracked;if(!o){s.innerHTML='<div class="col-span-2 p-8 text-center glass-card rounded-2xl text-gray-400 text-xs">آیدی تلگرام را وارد کن تا سفارش‌ها نمایش داده شوند.</div>';t.innerHTML='<tr><td colspan="6" class="p-6 text-center text-gray-500">سفارشی برای نمایش نیست.</td></tr>';return;}var d=o.created_at?new Date(o.created_at).toLocaleDateString('fa-IR'):'—';s.innerHTML=o.status==='delivered'&&o.config_string?'<div class="p-5 rounded-2xl glass-card border border-emerald-500/30 space-y-4"><b class="text-white">'+nsEsc(o.plan_name)+'</b><p class="text-xs text-gray-400">'+o.duration_days+' روز · '+(o.volume_gb===0?'نامحدود':o.volume_gb+' گیگابایت')+'</p><button onclick="showSubscriptionModal()" class="w-full bg-brand-600 text-white rounded-xl py-2.5 text-xs">نمایش کانفیگ و QR</button></div>':'<div class="p-5 rounded-2xl glass-card border border-amber-500/20 space-y-3"><b class="text-white">'+nsEsc(o.plan_name)+'</b><p class="text-xs text-amber-300">'+nsEsc(statusLabel(o.status))+'</p><button onclick="refreshTrackedOrder()" class="text-xs text-brand-300">تازه‌سازی وضعیت</button></div>';t.innerHTML='<tr><td class="p-4 font-mono text-brand-400">'+nsEsc(o.order_code)+'</td><td class="p-4 text-white">'+nsEsc(o.plan_name)+'</td><td class="p-4">'+formatPrice(o.total_toman)+'</td><td class="p-4">'+d+'</td><td class="p-4">'+nsEsc(statusLabel(o.status))+'</td><td class="p-4">'+(o.status==='delivered'&&o.config_string?'<button onclick="showSubscriptionModal()" class="text-brand-400">دریافت کانفیگ</button>':'—')+'</td></tr>';}
 async function refreshTrackedOrder(){var f=document.getElementById('track-telegram-id');if(f)await trackOrderSubmit({preventDefault:function(){}});}
