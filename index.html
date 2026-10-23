@@ -736,7 +736,7 @@
             <form id="form-checkout" onsubmit="submitOrder(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs text-gray-300 mb-1">شماره موبایل (جهت پیگیری و دریافت اشتراک)</label>
-                    <input type="tel" id="input-phone" required placeholder="09123456789" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 font-mono dir-ltr">
+                    <input type="text" id="input-phone" required placeholder="@YourTelegramID" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 font-mono dir-ltr">
                 </div>
 
                 <div>
@@ -874,7 +874,7 @@
             <div class="space-y-4 text-xs">
                 <div class="p-3 bg-gray-900 rounded-xl border border-gray-800 space-y-1">
                     <p class="text-gray-400">کد پیگیری: <span id="adm-approve-order-id" class="text-white font-mono">#---</span></p>
-                    <p class="text-gray-400">موبایل خریدار: <span id="adm-approve-phone" class="text-white font-mono">---</span></p>
+                    <p class="text-gray-400">آیدی تلگرام خریدار: <span id="adm-approve-phone" class="text-white font-mono">---</span></p>
                 </div>
 
                 <div>
@@ -948,11 +948,11 @@
         }
 
         function getCurrentUserPhone() {
-            return localStorage.getItem('netshield_user_phone') || '';
+            return localStorage.getItem('netshield_user_telegram') || '';
         }
 
         function setCurrentUserPhone(phone) {
-            localStorage.setItem('netshield_user_phone', phone);
+            localStorage.setItem('netshield_user_telegram', phone);
         }
 
         // Selected plan for active checkout flow
@@ -1172,7 +1172,7 @@
             e.preventDefault();
             const phone = document.getElementById('input-phone').value.trim();
             if (!phone || !receiptBase64) {
-                showToast('لطفا اطلاعات تلفن و تصویر رسید را وارد کنید', 'error');
+                showToast('لطفاً آیدی تلگرام و تصویر رسید را وارد کنید', 'error');
                 return;
             }
 
@@ -1294,7 +1294,7 @@
         }
 
         function logoutUser() {
-            localStorage.removeItem('netshield_user_phone');
+            localStorage.removeItem('netshield_user_telegram');
             showToast('از حساب کاربری خارج شدید');
             navigateTo('home');
         }
@@ -1525,7 +1525,7 @@ function formatPrice(n){return Number(n||0).toLocaleString('fa-IR')+' تومان
 function showToast(m,t){var e=document.createElement('div');e.className=(t==='error'?'bg-red-600':'bg-emerald-600')+' text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold';e.textContent=m;document.getElementById('toast-container').appendChild(e);setTimeout(function(){e.remove();},4500);}
 async function copyToClipboard(s,m){try{await navigator.clipboard.writeText(s);showToast(m||'کپی شد');}catch(e){var x=document.createElement('textarea');x.value=s;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();showToast(m||'کپی شد');}}
 function openModal(id){document.getElementById(id).classList.remove('hidden');}function closeModal(id){document.getElementById(id).classList.add('hidden');}
-function getCurrentUserPhone(){return localStorage.getItem('netshield_user_phone')||'';}function setCurrentUserPhone(v){localStorage.setItem('netshield_user_phone',v);}
+function getCurrentUserPhone(){return localStorage.getItem('netshield_user_telegram')||'';}function setCurrentUserPhone(v){localStorage.setItem('netshield_user_telegram',v);}
 function toggleMobileMenu(){document.getElementById('mobile-menu').classList.toggle('hidden');}function toggleFaq(e){e.querySelector('p').classList.toggle('hidden');e.querySelector('i').classList.toggle('rotate-180');}
 async function nsLoad(){try{var p=await nsSb.from('vpn_plans').select('*').eq('active',true).order('price_toman');if(p.error)throw p.error;nsPlans=(p.data||[]).map(nsMap);var s=await nsSb.from('vpn_payment_settings').select('*').eq('id',1).maybeSingle();if(s.error)throw s.error;nsSettings=s.data?{cardNum:s.data.card_number||'',cardHolder:s.data.cardholder_name||'',bankName:s.data.bank_name||''}:{cardNum:'',cardHolder:'',bankName:''};renderHomePlans();renderPlansGrid('all');}catch(e){console.error(e);showToast('اتصال یا مجوزهای Supabase مشکل دارد.','error');}}
 function navigateTo(v){if(v==='admin'){nsOpenAdmin();return;}['home','plans','guide','faq','user-dashboard','admin'].forEach(function(k){document.getElementById('view-'+k).classList.add('hidden');});document.getElementById('view-'+v).classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});if(v==='home')renderHomePlans();if(v==='plans')renderPlansGrid('all');if(v==='user-dashboard')renderUserDashboard();}
@@ -1535,7 +1535,7 @@ function renderPlansGrid(f){var a=nsPlans.slice();if(f==='limited')a=a.filter(fu
 function filterPlans(t){['all','limited','unlimited','special','economic'].forEach(function(x){var b=document.getElementById('filter-'+x);if(!b)return;b.className=x===t?'px-5 py-2 rounded-lg text-xs font-semibold bg-brand-600 text-white transition':'px-5 py-2 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition';});renderPlansGrid(t);}
 async function startCheckout(id){var p=nsPlans.find(function(x){return x.id===id;});if(!p)return;if(!nsSettings.cardNum||!nsSettings.cardHolder){showToast('اطلاعات کارت پرداخت هنوز توسط مدیر ثبت نشده است.','error');return;}currentCheckoutPlan=p;document.getElementById('checkout-plan-title').textContent=p.name;document.getElementById('checkout-plan-specs').textContent=p.days+' روز | '+(p.volume===0?'نامحدود':p.volume+' گیگابایت');document.getElementById('checkout-plan-price').textContent=formatPrice(p.price);document.getElementById('checkout-bank-name').textContent=nsSettings.bankName||'بانک ثبت نشده';document.getElementById('checkout-card-num').textContent=nsSettings.cardNum||'شماره کارت ثبت نشده';document.getElementById('checkout-card-holder').textContent=nsSettings.cardHolder||'صاحب کارت ثبت نشده';document.getElementById('form-checkout').reset();document.getElementById('input-phone').value=getCurrentUserPhone();nsReceiptFile=null;document.getElementById('receipt-preview-container').classList.add('hidden');openModal('modal-checkout');}
 function previewReceiptImage(e){var f=e.target.files&&e.target.files[0];nsReceiptFile=f||null;var wrap=document.getElementById('receipt-preview-container'),img=document.getElementById('receipt-preview-img');if(!f){wrap.classList.add('hidden');return;}if(f.size>5242880||['image/jpeg','image/png','image/webp','application/pdf'].indexOf(f.type)<0){nsReceiptFile=null;e.target.value='';showToast('فقط JPG/PNG/WEBP/PDF تا ۵ مگابایت مجاز است.','error');return;}document.getElementById('receipt-file-name').textContent=f.name;if(f.type.indexOf('image/')===0){img.src=URL.createObjectURL(f);img.classList.remove('hidden');}else{img.removeAttribute('src');img.classList.add('hidden');}wrap.classList.remove('hidden');}
-async function submitOrder(e){e.preventDefault();var phone=document.getElementById('input-phone').value.trim(),f=nsReceiptFile,b=document.querySelector('#form-checkout button[type="submit"]');if(!currentCheckoutPlan||!phone||!f){showToast('پلن، شماره تماس و رسید لازم است.','error');return;}if(!/^[+0-9 ()-]{7,20}$/.test(phone)){showToast('شماره تماس معتبر نیست.','error');return;}b.disabled=true;try{var ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','application/pdf':'pdf'}[f.type],path=crypto.randomUUID()+'.'+ext,u=await nsSb.storage.from('netshield-receipts').upload(path,f,{upsert:false,contentType:f.type});if(u.error)throw u.error;var r=await nsSb.rpc('create_vpn_order',{p_plan_id:currentCheckoutPlan.id,p_customer_phone:phone,p_receipt_path:path,p_payment_reference:null});if(r.error)throw r.error;var o=Array.isArray(r.data)?r.data[0]:r.data;if(!o||!o.order_code||!o.access_token)throw new Error('پاسخ ثبت سفارش ناقص است');setCurrentUserPhone(phone);localStorage.setItem('netshield_order_code',o.order_code);localStorage.setItem('netshield_access_token',o.access_token);closeModal('modal-checkout');document.getElementById('form-checkout').reset();showToast('سفارش ثبت شد؛ کد و کلید پیگیری را نگه دار.');navigateTo('user-dashboard');}catch(x){console.error(x);showToast(x.message||'ثبت سفارش ناموفق بود.','error');}finally{b.disabled=false;}}
+async function submitOrder(e){e.preventDefault();var phone=document.getElementById('input-phone').value.trim(),f=nsReceiptFile,b=document.querySelector('#form-checkout button[type="submit"]');if(!currentCheckoutPlan||!phone||!f){showToast('پلن، آیدی تلگرام و رسید لازم است.','error');return;}if(!/^@?[A-Za-z0-9_]{5,32}$/.test(phone)){showToast('آیدی تلگرام معتبر نیست؛ بدون فاصله وارد کن.','error');return;}if(phone.charAt(0)!=='@')phone='@'+phone;b.disabled=true;try{var ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','application/pdf':'pdf'}[f.type],path=crypto.randomUUID()+'.'+ext,u=await nsSb.storage.from('netshield-receipts').upload(path,f,{upsert:false,contentType:f.type});if(u.error)throw u.error;var r=await nsSb.rpc('create_vpn_order',{p_plan_id:currentCheckoutPlan.id,p_customer_phone:phone,p_receipt_path:path,p_payment_reference:null});if(r.error)throw r.error;var o=Array.isArray(r.data)?r.data[0]:r.data;if(!o||!o.order_code||!o.access_token)throw new Error('پاسخ ثبت سفارش ناقص است');setCurrentUserPhone(phone);localStorage.setItem('netshield_order_code',o.order_code);localStorage.setItem('netshield_access_token',o.access_token);closeModal('modal-checkout');document.getElementById('form-checkout').reset();showToast('سفارش ثبت شد؛ کد و کلید پیگیری را نگه دار.');navigateTo('user-dashboard');}catch(x){console.error(x);showToast(x.message||'ثبت سفارش ناموفق بود.','error');}finally{b.disabled=false;}}
 function statusLabel(s){return ({pending:'در انتظار بررسی رسید',approved:'پرداخت تأیید شد',rejected:'سفارش رد شد',delivered:'کانفیگ تحویل شد'})[s]||'نامشخص';}
 function renderUserDashboard(){document.getElementById('user-display-phone').textContent=getCurrentUserPhone()||'کاربر مهمان';var c=localStorage.getItem('netshield_order_code')||'',t=localStorage.getItem('netshield_access_token')||'';document.getElementById('track-order-code').value=c;document.getElementById('track-access-token').value=t;nsTracked=null;nsRenderTracked();if(c&&t)nsTrack(c,t,false);}
 async function trackOrderSubmit(e){e.preventDefault();var c=document.getElementById('track-order-code').value.trim(),t=document.getElementById('track-access-token').value.trim();localStorage.setItem('netshield_order_code',c);localStorage.setItem('netshield_access_token',t);await nsTrack(c,t,true);}
