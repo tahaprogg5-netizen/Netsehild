@@ -1021,7 +1021,7 @@
             if (viewName === 'home') renderHomePlans();
             if (viewName === 'plans') renderPlansGrid('all');
             if (viewName === 'user-dashboard') renderUserDashboard();
-            if (viewName === 'admin') renderAdminDashboard();
+            if (viewName === 'admin') { nsOpenAdmin(); return; }
         }
 
         function toggleMobileMenu() {
