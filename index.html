@@ -924,10 +924,49 @@
             bankName: 'بانک ملی ایران'
         };
 
-        // Get State from LocalStorage
+        // Shared app state. Supabase is the source of truth for plans and payment settings.
+        let nsPlans = DEFAULT_PLANS.map(p => ({...p}));
+        let nsOrders = [];
+        let nsSettings = {...DEFAULT_SETTINGS};
+        let nsTracked = null;
+        let nsAdmin = null;
+
+        function nsEsc(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+        function statusLabel(status) {
+            return ({pending:'در انتظار بررسی', delivered:'تحویل‌شده', rejected:'ردشده'})[status] || status || 'نامشخص';
+        }
+        function nsMap(row) {
+            return {id:row.id, name:row.name, price:Number(row.price_toman)||0,
+                days:Number(row.duration_days)||30, volume:Number(row.volume_gb)||0,
+                users:Number(row.max_devices)||1, protocol:row.protocol||'VLESS',
+                desc:row.description||'', active:row.active!==false};
+        }
+        async function nsLoad() {
+            try {
+                const [plansResult, settingsResult] = await Promise.all([
+                    nsSb.from('vpn_plans').select('*').eq('active', true).order('price_toman', {ascending:true}),
+                    nsSb.from('vpn_payment_settings').select('*').eq('id', 1).maybeSingle()
+                ]);
+                if (plansResult.error) throw plansResult.error;
+                if (Array.isArray(plansResult.data) && plansResult.data.length) {
+                    nsPlans = plansResult.data.map(nsMap);
+                } else {
+                    console.warn('No active plans returned from Supabase; keeping local fallback plans.');
+                }
+                if (!settingsResult.error && settingsResult.data) {
+                    nsSettings = {cardNum:settingsResult.data.card_number||'', cardHolder:settingsResult.data.cardholder_name||'', bankName:settingsResult.data.bank_name||''};
+                }
+            } catch (err) {
+                console.error('Supabase initial load failed:', err);
+                showToast('دریافت پلن‌ها از سرور انجام نشد؛ اتصال و تنظیمات دیتابیس را بررسی کن.', 'error');
+            }
+            renderHomePlans();
+            renderPlansGrid('all');
+        }
         function getStoredPlans() {
-            const data = localStorage.getItem('netshield_plans');
-            return data ? JSON.parse(data) : DEFAULT_PLANS;
+            return nsPlans;
         }
 
         function saveStoredPlans(plans) {
@@ -943,10 +982,7 @@
             localStorage.setItem('netshield_orders', JSON.stringify(orders));
         }
 
-        function getStoredSettings() {
-            const data = localStorage.getItem('netshield_settings');
-            return data ? JSON.parse(data) : DEFAULT_SETTINGS;
-        }
+        function getStoredSettings() { return nsSettings; }
 
         function saveStoredSettings(settings) {
             localStorage.setItem('netshield_settings', JSON.stringify(settings));
@@ -1095,7 +1131,7 @@
         }
 
         function renderHomePlans() {
-            const plans = getStoredPlans().slice(0, 3);
+            const plans = getStoredPlans().filter(p => p.active !== false).slice(0, 3);
             const container = document.getElementById('home-featured-plans');
             if (container) {
                 container.innerHTML = plans.map(p => createPlanCardHtml(p)).join('');
@@ -1103,7 +1139,7 @@
         }
 
         function renderPlansGrid(filter = 'all') {
-            const plans = getStoredPlans();
+            const plans = getStoredPlans().filter(p => p.active !== false);
             const container = document.getElementById('plans-grid');
             
             let filtered = plans;
@@ -1142,7 +1178,7 @@
             const settings = getStoredSettings();
 
             document.getElementById('checkout-plan-title').innerText = plan.name;
-            document.getElementById('checkout-plan-specs').innerText = `${plan.days} روز | ${plan.volume === 0 ? 'نامحدود' : plan.volume + ' گیگابایت'}`;
+            document.getElementById('checkout-plan-specs').innerText = `${plan.days} روز | ${plan.volume === 0 ? 'نامحدود' : plan.volume + ' گیگابایت'} | ${plan.users} کاربر`;
             document.getElementById('checkout-plan-price').innerText = formatPrice(plan.price);
 
             document.getElementById('checkout-bank-name').innerText = settings.bankName;
@@ -1162,53 +1198,68 @@
 
         function previewReceiptImage(event) {
             const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    receiptBase64 = e.target.result;
-                    document.getElementById('receipt-preview-img').src = receiptBase64;
-                    document.getElementById('receipt-preview-container').classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function submitOrder(e) {
-            e.preventDefault();
-            const phone = document.getElementById('input-phone').value.trim();
-            if (!phone || !receiptBase64) {
-                showToast('لطفاً آیدی تلگرام و تصویر رسید را وارد کنید', 'error');
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                event.target.value = '';
+                showToast('حجم رسید باید کمتر از ۵ مگابایت باشد.', 'error');
                 return;
             }
+            receiptBase64 = file;
+            const preview = document.getElementById('receipt-preview-img');
+            if (file.type !== 'application/pdf') {
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+            document.getElementById('receipt-file-name').textContent = file.name;
+            document.getElementById('receipt-preview-container').classList.remove('hidden');
+        }
 
-            setCurrentUserPhone(phone);
-
-            const trackingCode = 'NS-' + Math.floor(100000 + Math.random() * 900000);
-            const newOrder = {
-                id: trackingCode,
-                phone: phone,
-                planId: currentCheckoutPlan.id,
-                planName: currentCheckoutPlan.name,
-                price: currentCheckoutPlan.price,
-                receiptImg: receiptBase64,
-                status: 'pending', // pending, approved, rejected
-                configString: '',
-                createdAt: new Date().toLocaleDateString('fa-IR')
-            };
-
-            const orders = getStoredOrders();
-            orders.unshift(newOrder);
-            saveStoredOrders(orders);
-
-            closeModal('modal-checkout');
-            showToast(`سفارش با کد پیگیری ${trackingCode} ثبت شد و در حال بررسی است.`);
-            
-            // Reset form
-            document.getElementById('form-checkout').reset();
-            document.getElementById('receipt-preview-container').classList.add('hidden');
-            receiptBase64 = '';
-
-            navigateTo('user-dashboard');
+        async function submitOrder(e) {
+            e.preventDefault();
+            const telegram = document.getElementById('input-phone').value.trim().replace(/^@/, '');
+            const file = document.getElementById('input-receipt').files[0];
+            const paymentReference = (document.getElementById('input-payment-reference')?.value || '').trim();
+            if (!currentCheckoutPlan || !/^[A-Za-z0-9_]{5,32}$/.test(telegram) || !file) {
+                showToast('آیدی تلگرام معتبر و تصویر رسید را وارد کن.', 'error');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('حجم رسید باید کمتر از ۵ مگابایت باشد.', 'error');
+                return;
+            }
+            const btn = document.querySelector('#form-checkout button[type="submit"]');
+            if (btn) btn.disabled = true;
+            try {
+                const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : (file.type === 'image/webp' ? 'webp' : file.type === 'image/png' ? 'png' : 'jpg');
+                const receiptPath = crypto.randomUUID() + '.' + ext;
+                const upload = await nsSb.storage.from('netshield-receipts').upload(receiptPath, file, {upsert:false, contentType:file.type || 'application/octet-stream'});
+                if (upload.error) throw upload.error;
+                const result = await nsSb.rpc('create_vpn_order', {
+                    p_plan_id: currentCheckoutPlan.id,
+                    p_customer_phone: '@' + telegram,
+                    p_receipt_path: receiptPath,
+                    p_payment_reference: paymentReference
+                });
+                if (result.error) {
+                    await nsSb.storage.from('netshield-receipts').remove([receiptPath]);
+                    throw result.error;
+                }
+                const row = Array.isArray(result.data) ? result.data[0] : result.data;
+                setCurrentUserPhone('@' + telegram);
+                closeModal('modal-checkout');
+                document.getElementById('form-checkout').reset();
+                document.getElementById('receipt-preview-container').classList.add('hidden');
+                receiptBase64 = '';
+                showToast('سفارش ثبت شد. کد پیگیری: ' + (row?.order_code || 'ثبت‌شده'));
+                navigateTo('user-dashboard');
+            } catch (err) {
+                console.error('Order submission failed:', err);
+                showToast(err.message || 'ثبت سفارش انجام نشد؛ رسید و تنظیمات دسترسی را بررسی کن.', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
         }
 
         // -------------------------------------------------------------
@@ -1235,10 +1286,10 @@ async function confirmOrderPayment(ok){if(!selectedAdminOrderId)return;try{await
 function renderAdminPlans(){var b=document.getElementById('admin-plans-table');b.innerHTML=nsPlans.map(function(p){return '<tr><td class="p-4 text-white">'+nsEsc(p.name)+'</td><td class="p-4">'+formatPrice(p.price)+'</td><td class="p-4">'+p.days+'</td><td class="p-4">'+(p.volume===0?'نامحدود':p.volume+' GB')+'</td><td class="p-4">'+nsEsc(p.protocol)+'</td><td class="p-4">بله</td><td class="p-4"><button onclick="editPlan(\''+p.id+'\')" class="text-brand-400">ویرایش</button> <button onclick="deletePlan(\''+p.id+'\')" class="text-red-400">حذف</button></td></tr>';}).join('')||'<tr><td colspan="7" class="p-4">پلنی نیست.</td></tr>';}
 function openPlanModal(p){document.getElementById('form-plan-crud').reset();document.getElementById('plan-edit-id').value=p?p.id:'';document.getElementById('plan-modal-title').textContent=p?'ویرایش پلن':'افزودن پلن';if(p){document.getElementById('plan-input-name').value=p.name;document.getElementById('plan-input-price').value=p.price;document.getElementById('plan-input-days').value=p.days;document.getElementById('plan-input-volume').value=p.volume;document.getElementById('plan-input-users').value=p.users;document.getElementById('plan-input-protocol').value=p.protocol;document.getElementById('plan-input-desc').value=p.desc;}openModal('modal-plan-crud');}
 function editPlan(id){var p=nsPlans.find(function(x){return x.id===id;});if(p)openPlanModal(p);}
-async function deletePlan(id){if(!confirm('پلن حذف شود؟'))return;try{await nsRequireAdmin();var r=await nsSb.from('vpn_plans').delete().eq('id',id);if(r.error)throw r.error;await renderAdminDashboard();renderHomePlans();renderPlansGrid('all');}catch(e){showToast(e.message||'حذف پلن ناموفق بود.','error');}}
+async function deletePlan(id){if(!confirm('پلن حذف شود؟'))return;try{await nsRequireAdmin();var r=await nsSb.from('vpn_plans').delete().eq('id',id);if(r.error)throw r.error;await nsLoad();await renderAdminDashboard();}catch(e){showToast(e.message||'حذف پلن ناموفق بود.','error');}}
 async function savePlanSubmit(e){e.preventDefault();try{await nsRequireAdmin();var id=document.getElementById('plan-edit-id').value,p={name:document.getElementById('plan-input-name').value.trim(),price_toman:+document.getElementById('plan-input-price').value,duration_days:+document.getElementById('plan-input-days').value,volume_gb:+document.getElementById('plan-input-volume').value,max_devices:+document.getElementById('plan-input-users').value,protocol:document.getElementById('plan-input-protocol').value,description:document.getElementById('plan-input-desc').value.trim(),active:true};var r=id?await nsSb.from('vpn_plans').update(p).eq('id',id):await nsSb.from('vpn_plans').insert(p);if(r.error)throw r.error;closeModal('modal-plan-crud');await renderAdminDashboard();renderHomePlans();renderPlansGrid('all');showToast('پلن ذخیره شد.');}catch(x){showToast(x.message||'ذخیره پلن ناموفق بود.','error');}}
 async function saveCardSettings(){try{await nsRequireAdmin();var p={card_number:document.getElementById('setting-card-num').value.trim(),cardholder_name:document.getElementById('setting-card-holder').value.trim(),bank_name:document.getElementById('setting-bank-name').value.trim(),updated_at:new Date().toISOString()};var r=await nsSb.from('vpn_payment_settings').update(p).eq('id',1);if(r.error)throw r.error;nsSettings={cardNum:p.card_number,cardHolder:p.cardholder_name,bankName:p.bank_name};showToast('اطلاعات پرداخت ذخیره شد.');}catch(e){showToast(e.message||'ذخیره تنظیمات ناموفق بود.','error');}}
-window.addEventListener('load',async function(){await nsLoad();var s=await nsSb.auth.getSession();if(s.data.session&&await nsIsAdmin(s.data.session.user))nsAdmin=s.data.session.user;navigateTo('home');});
+window.addEventListener('load',async function(){await nsLoad();try{var s=await nsSb.auth.getSession();if(s.data.session&&await nsIsAdmin(s.data.session.user))nsAdmin=s.data.session.user;}catch(e){console.warn(e);}navigateTo('home');});
 </script>
 </body>
 </html>
