@@ -722,7 +722,7 @@
             </div>
 
             <!-- Bank Information Card -->
-            <div class="p-4 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/60 space-y-3">
+            <div id="checkout-payment-card" class="p-4 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/60 space-y-3">
                 <div class="flex justify-between items-center text-xs text-gray-400">
                     <span>اطلاعات کارت جهت واریز</span>
                     <span id="checkout-bank-name" class="text-brand-400 font-semibold">بانک سامان</span>
@@ -744,7 +744,7 @@
                     <input type="text" id="input-phone" required placeholder="@YourTelegramID" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 font-mono dir-ltr">
                 </div>
 
-                <div>
+                <div id="checkout-receipt-section">
                     <label class="block text-xs text-gray-300 mb-1">بارگذاری تصویر رسید واریز</label>
                     <input type="file" id="input-receipt" accept="image/jpeg,image/png,image/webp,application/pdf" required onchange="previewReceiptImage(event)" class="w-full text-xs text-gray-400 file:mr-0 file:ml-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-600 file:text-white hover:file:bg-brand-500 cursor-pointer">
                     <div id="receipt-preview-container" class="mt-2 hidden">
@@ -1182,6 +1182,11 @@
             document.getElementById('checkout-bank-name').innerText = settings.bankName;
             document.getElementById('checkout-card-num').innerText = settings.cardNum;
             document.getElementById('checkout-card-holder').innerText = settings.cardHolder;
+            const isFreePlan = Number(plan.price) === 0;
+            document.getElementById('checkout-payment-card').classList.toggle('hidden', isFreePlan);
+            document.getElementById('checkout-receipt-section').classList.toggle('hidden', isFreePlan);
+            document.getElementById('input-receipt').required = !isFreePlan;
+            document.querySelector('#form-checkout button[type="submit"] span').innerText = isFreePlan ? 'ثبت سفارش رایگان' : 'ثبت سفارش و ارسال رسید';
 
             // Pre-fill phone if stored
             const storedPhone = getCurrentUserPhone();
@@ -1218,30 +1223,34 @@
             e.preventDefault();
             const telegram = document.getElementById('input-phone').value.trim().replace(/^@/, '');
             const file = document.getElementById('input-receipt').files[0];
+            const isFreePlan = currentCheckoutPlan && Number(currentCheckoutPlan.price) === 0;
             const paymentReference = (document.getElementById('input-payment-reference')?.value || '').trim();
-            if (!currentCheckoutPlan || !/^[A-Za-z0-9_]{5,32}$/.test(telegram) || !file) {
-                showToast('آیدی تلگرام معتبر و تصویر رسید را وارد کن.', 'error');
+            if (!currentCheckoutPlan || !/^[A-Za-z0-9_]{5,32}$/.test(telegram) || (!isFreePlan && !file)) {
+                showToast(isFreePlan ? 'آیدی تلگرام معتبر وارد کن.' : 'آیدی تلگرام معتبر و تصویر رسید را وارد کن.', 'error');
                 return;
             }
-            if (file.size > 5 * 1024 * 1024) {
+            if (file && file.size > 5 * 1024 * 1024) {
                 showToast('حجم رسید باید کمتر از ۵ مگابایت باشد.', 'error');
                 return;
             }
             const btn = document.querySelector('#form-checkout button[type="submit"]');
             if (btn) btn.disabled = true;
             try {
-                const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : (file.type === 'image/webp' ? 'webp' : file.type === 'image/png' ? 'png' : 'jpg');
-                const receiptPath = crypto.randomUUID() + '.' + ext;
-                const upload = await nsSb.storage.from('netshield-receipts').upload(receiptPath, file, {upsert:false, contentType:file.type || 'application/octet-stream'});
-                if (upload.error) throw upload.error;
+                let receiptPath = null;
+                if (!isFreePlan) {
+                    const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : (file.type === 'image/webp' ? 'webp' : file.type === 'image/png' ? 'png' : 'jpg');
+                    receiptPath = crypto.randomUUID() + '.' + ext;
+                    const upload = await nsSb.storage.from('netshield-receipts').upload(receiptPath, file, {upsert:false, contentType:file.type || 'application/octet-stream'});
+                    if (upload.error) throw upload.error;
+                }
                 const result = await nsSb.rpc('create_vpn_order', {
                     p_plan_id: currentCheckoutPlan.id,
                     p_customer_phone: '@' + telegram,
                     p_receipt_path: receiptPath,
-                    p_payment_reference: paymentReference
+                    p_payment_reference: isFreePlan ? null : paymentReference
                 });
                 if (result.error) {
-                    await nsSb.storage.from('netshield-receipts').remove([receiptPath]);
+                    if (receiptPath) await nsSb.storage.from('netshield-receipts').remove([receiptPath]);
                     throw result.error;
                 }
                 const row = Array.isArray(result.data) ? result.data[0] : result.data;
