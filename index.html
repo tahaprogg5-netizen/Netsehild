@@ -776,8 +776,8 @@
             </button>
 
             <div class="border-b border-gray-800 pb-4">
-                <h3 class="text-xl font-bold text-white">اطلاعات اتصال کانفیگ</h3>
-                <p class="text-xs text-gray-400 mt-1">لینک اختصاصی V2Ray جهت وارد کردن در برنامه</p>
+                <h3 class="text-xl font-bold text-white">اطلاعات اتصال / لینک اشتراک</h3>
+                <p class="text-xs text-gray-400 mt-1">کانفیگ مستقیم یا لینک اشتراک دریافتی از تأمین‌کننده</p>
             </div>
 
             <!-- Config Content & QR Code -->
@@ -787,13 +787,13 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="block text-xs text-gray-400">لینک کانفیگ (VLESS / Trojan / Shadowsocks)</label>
+                    <label class="block text-xs text-gray-400">کانفیگ یا لینک اشتراک (VLESS / Trojan / Shadowsocks / HTTPS Sub Link)</label>
                     <div class="relative">
                         <textarea id="sub-config-string" readonly rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs font-mono text-emerald-400 dir-ltr resize-none focus:outline-none"></textarea>
                     </div>
                     <button onclick="copyToClipboard(document.getElementById('sub-config-string').value, 'کد کانفیگ با موفقیت کپی شد')" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
                         <i class="fa-regular fa-copy"></i>
-                        <span>کپی لینک کانفیگ</span>
+                        <span>کپی کانفیگ / لینک اشتراک</span>
                     </button>
                 </div>
 
@@ -879,7 +879,7 @@
             </button>
 
             <div class="border-b border-gray-800 pb-3">
-                <h3 class="text-lg font-bold text-white">بررسی رسید و تخصیص کانفیگ</h3>
+                <h3 class="text-lg font-bold text-white">بررسی رسید و تحویل کانفیگ / لینک اشتراک</h3>
             </div>
 
             <div class="space-y-4 text-xs">
@@ -896,9 +896,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-gray-400 mb-1">لینک/کد کانفیگ جهت تحویل به کاربر (V2Ray String)</label>
-                    <textarea id="adm-approve-config-input" rows="3" placeholder="vless://xxxx-xxxx-xxxx-xxxx@server.netshield.com:443?type=tcp&security=reality#NetShield-Config" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-mono text-xs dir-ltr focus:outline-none focus:border-brand-500"></textarea>
-                    <p class="text-[10px] text-gray-500 mt-1">فقط کانفیگ واقعی تأمین‌کننده را وارد کن؛ کانفیگ ساختگی تولید نمی‌شود.</p>
+                    <label class="block text-gray-400 mb-1">کانفیگ یا لینک اشتراک (Sub Link) جهت تحویل</label>
+                    <textarea id="adm-approve-config-input" rows="3" placeholder="vless://... یا https://sub.example.com/..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-mono text-xs dir-ltr focus:outline-none focus:border-brand-500"></textarea>
+                    <p class="text-[10px] text-gray-500 mt-1">می‌توانی کانفیگ مستقیم مثل vless:// یا لینک اشتراک https://sub... را وارد کنی. لینک باید از تأمین‌کننده واقعی باشد.</p>
                 </div>
 
                 <div class="flex gap-3 pt-2">
