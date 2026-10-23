@@ -1010,18 +1010,16 @@
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('hidden');
             });
-
+            // The admin view must remain hidden until Supabase auth and admin allowlist checks succeed.
+            if (viewName === 'admin') { nsOpenAdmin(); return; }
             const targetView = document.getElementById(`view-${viewName}`);
             if (targetView) {
                 targetView.classList.remove('hidden');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-
-            // View specific initializations
             if (viewName === 'home') renderHomePlans();
             if (viewName === 'plans') renderPlansGrid('all');
             if (viewName === 'user-dashboard') renderUserDashboard();
-            if (viewName === 'admin') { nsOpenAdmin(); return; }
         }
 
         function toggleMobileMenu() {
