@@ -78,6 +78,44 @@
             padding: 1px;
         }
 
+
+        :root { color-scheme: dark; --ns-violet:#8754ff; --ns-blue:#16cfff; --ns-line:rgba(160,174,205,.14); }
+        body {
+            background:
+                radial-gradient(ellipse at 8% 0%, rgba(89,54,190,.19), transparent 34rem),
+                radial-gradient(ellipse at 95% 20%, rgba(0,180,255,.09), transparent 30rem),
+                #070a12;
+            color:#f4f6ff;
+        }
+        body::before {
+            content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+            background-image:linear-gradient(rgba(160,174,205,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(160,174,205,.025) 1px,transparent 1px);
+            background-size:44px 44px; mask-image:linear-gradient(to bottom,black,transparent 78%);
+        }
+        .ns-brand {display:flex;align-items:center;gap:11px;text-decoration:none;min-width:0}
+        .ns-brand-mark {width:43px;height:49px;flex:0 0 auto;filter:drop-shadow(0 0 13px rgba(112,75,255,.24))}
+        .ns-brand-copy {display:flex;flex-direction:column;gap:3px;min-width:0}
+        .ns-brand-name {font-family:Inter,'Vazirmatn',sans-serif;font-size:25px;font-weight:850;line-height:1;letter-spacing:-1.2px;color:#f8faff;white-space:nowrap}
+        .ns-brand-name strong {font-weight:900;background:linear-gradient(105deg,#b34dff 0%,#6960ff 52%,#23d6ff 100%);background-clip:text;-webkit-background-clip:text;color:transparent}
+        .ns-brand-tagline {font:600 8px/1.4 Inter,Arial,sans-serif;letter-spacing:1.65px;color:#a3acc5;white-space:nowrap}
+        .ns-brand-tagline i {font-style:normal;color:#a15cff;margin:0 2px}
+        header.sticky {background:rgba(7,10,18,.82)!important;border-color:rgba(135,84,255,.16)!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+        .glass-card {background:linear-gradient(145deg,rgba(20,25,43,.86),rgba(11,15,27,.78));border-color:var(--ns-line);box-shadow:0 18px 55px rgba(0,0,0,.13)}
+        .glass-modal {background:rgba(10,14,25,.96);border-color:rgba(151,133,255,.2)}
+        .gradient-text {background:linear-gradient(105deg,#b44dff 0%,#8170ff 48%,#29d8ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        button {transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
+        button:hover {border-color:rgba(143,103,255,.45)}
+        .rounded-3xl.glass-card {border-radius:28px}
+        #view-home > .relative.rounded-3xl {border-color:rgba(134,95,255,.22);box-shadow:0 30px 90px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025)}
+        #view-home .bg-emerald-500\/10 {background-color:rgba(27,195,255,.07)!important}
+        #view-home .text-emerald-400 {color:#51d9f5!important}
+        #view-home .from-brand-600 {--tw-gradient-from:#7545ed var(--tw-gradient-from-position)!important;--tw-gradient-to:rgb(117 69 237 / 0%) var(--tw-gradient-to-position)!important}
+        #plans-grid > div {border-color:rgba(145,130,195,.16);background:linear-gradient(155deg,rgba(24,27,46,.95),rgba(12,15,27,.95));box-shadow:0 16px 40px rgba(0,0,0,.16);transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+        #plans-grid > div:hover {transform:translateY(-4px);border-color:rgba(133,91,255,.5);box-shadow:0 20px 50px rgba(70,42,140,.18)}
+        input,select,textarea {accent-color:#8c5bff}
+        :focus-visible {outline:2px solid #9d78ff!important;outline-offset:3px}
+        @media(max-width:480px){.ns-brand-mark{width:35px;height:41px}.ns-brand-name{font-size:21px}.ns-brand-tagline{font-size:7px;letter-spacing:1.1px}.ns-brand{gap:8px}}
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -103,15 +141,15 @@
     <header class="sticky top-0 z-40 glass-card border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo -->
-            <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home')">
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                    <i class="fa-solid font-bold fa-shield-halved text-2xl text-white"></i>
-                </div>
-                <div>
-                    <span class="text-2xl font-black tracking-tight text-white">نت‌شیلد</span>
-                    <span class="text-xs block text-emerald-400 font-medium">NetShield Security</span>
-                </div>
-            </div>
+            <a href="#" onclick="event.preventDefault();navigateTo('home')" class="ns-brand" aria-label="NetShield - صفحه اصلی">
+                <svg class="ns-brand-mark" viewBox="0 0 64 72" role="img" aria-label="NetShield">
+                    <defs><linearGradient id="nsLogoGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b14cff"/><stop offset=".52" stop-color="#6548ff"/><stop offset="1" stop-color="#15d9ff"/></linearGradient></defs>
+                    <path d="M32 3 58 13v20c0 17-11 28-26 36C17 61 6 50 6 33V13L32 3Z" fill="#0b1020" stroke="url(#nsLogoGradient)" stroke-width="3.2" stroke-linejoin="round"/>
+                    <path d="M18 47V24l28 25V26" fill="none" stroke="url(#nsLogoGradient)" stroke-width="6" stroke-linecap="square" stroke-linejoin="round"/>
+                    <path d="M18 24 46 49" fill="none" stroke="#dce8ff" stroke-opacity=".9" stroke-width="2"/>
+                </svg>
+                <span class="ns-brand-copy"><span class="ns-brand-name"><span>Net</span><strong>Shield</strong></span><span class="ns-brand-tagline">VPN <i>•</i> SECURITY <i>•</i> FREEDOM</span></span>
+            </a>
 
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
