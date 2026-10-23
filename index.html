@@ -140,15 +140,18 @@
     <!-- MAIN NAVBAR -->
     <header id="site-header" class="sticky top-0 z-40 glass-card border-b border-gray-800" style="position:sticky;top:0;z-index:1000;display:block;visibility:visible;opacity:1;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-20 flex items-center justify-between gap-4" style="min-height:84px;">
-            <!-- Brand Logo -->
-            <a href="#" onclick="event.preventDefault();navigateTo('home')" class="ns-brand" style="display:flex!important;visibility:visible!important;opacity:1!important;position:relative;z-index:2;flex-shrink:0;" aria-label="NetShield - صفحه اصلی">
-                <svg class="ns-brand-mark" style="display:block!important;width:48px;height:54px;min-width:48px;visibility:visible;opacity:1;" viewBox="0 0 64 72" role="img" aria-label="NetShield">
-                    <defs><linearGradient id="nsLogoGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b14cff"/><stop offset=".52" stop-color="#6548ff"/><stop offset="1" stop-color="#15d9ff"/></linearGradient></defs>
+            <!-- Visible NetShield brand at the very top -->
+            <a href="#" onclick="event.preventDefault();navigateTo('home')" class="ns-brand" style="display:flex!important;align-items:center!important;gap:11px!important;visibility:visible!important;opacity:1!important;position:relative;z-index:20;flex:0 0 auto;min-width:165px;padding:7px 0;" aria-label="NetShield - صفحه اصلی">
+                <svg class="ns-brand-mark" style="display:block!important;visibility:visible!important;opacity:1!important;width:48px!important;height:54px!important;min-width:48px!important;flex:0 0 48px;" viewBox="0 0 64 72" role="img" aria-label="NetShield logo">
+                    <defs><linearGradient id="nsLogoGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bd63ff"/><stop offset=".52" stop-color="#7556ff"/><stop offset="1" stop-color="#22d9ff"/></linearGradient></defs>
                     <path d="M32 3 58 13v20c0 17-11 28-26 36C17 61 6 50 6 33V13L32 3Z" fill="#0b1020" stroke="url(#nsLogoGradient)" stroke-width="3.2" stroke-linejoin="round"/>
                     <path d="M18 47V24l28 25V26" fill="none" stroke="url(#nsLogoGradient)" stroke-width="6" stroke-linecap="square" stroke-linejoin="round"/>
-                    <path d="M18 24 46 49" fill="none" stroke="#dce8ff" stroke-opacity=".9" stroke-width="2"/>
+                    <path d="M18 24 46 49" fill="none" stroke="#f0eaff" stroke-opacity=".95" stroke-width="2"/>
                 </svg>
-                <span class="ns-brand-copy" style="display:flex!important;visibility:visible!important;opacity:1!important;"><span class="ns-brand-name"><span>Net</span><strong>Shield</strong></span><span class="ns-brand-tagline">VPN <i>•</i> SECURITY <i>•</i> FREEDOM</span></span>
+                <span class="ns-brand-copy" style="display:flex!important;visibility:visible!important;opacity:1!important;flex-direction:column!important;gap:4px!important;">
+                    <span class="ns-brand-name" style="display:block!important;font-size:25px!important;line-height:1.15!important;color:#fff!important;"><span>Net</span><strong>Shield</strong></span>
+                    <span class="ns-brand-tagline" style="display:block!important;font-size:8px!important;line-height:1.5!important;letter-spacing:1.3px!important;color:#b9c4df!important;">NETSHIELD_IR <i>•</i> VPN</span>
+                </span>
             </a>
 
             <!-- Desktop Navigation -->
@@ -653,7 +656,7 @@
                 <p class="text-xs text-gray-400 mb-2">در صورت بروز مشکل در فرآیند خرید، با تیم پشتیبانی در تلگرام ارتباط برقرار کنید.</p>
                 <span class="inline-flex items-center gap-2 text-xs text-brand-400 bg-brand-950/60 border border-brand-800 px-3 py-1.5 rounded-lg dir-ltr">
                     <i class="fa-brands fa-telegram text-sm"></i>
-                    <span>@NetShield_Support</span>
+                    <span>@NetShield_ir</span>
                 </span>
             </div>
 
