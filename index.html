@@ -342,9 +342,21 @@
                 </div>
             </div>
 
-            <!-- All Plans Grid -->
+            <!-- Standard plans -->
             <div id="plans-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Rendered via Javascript -->
+            </div>
+
+            <!-- Dr Ping dedicated plans -->
+            <div class="space-y-5 pt-8 border-t border-cyan-500/20">
+                <div class="text-center space-y-2">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 text-sm font-bold"><i class="fa-solid fa-stethoscope"></i> دکترپینگ</div>
+                    <h2 class="text-2xl font-extrabold text-white">پلن‌های دکترپینگ</h2>
+                    <p class="text-sm text-gray-400">همه پلن‌ها ۳۰ روزه و بدون محدودیت کاربر هستند.</p>
+                </div>
+                <div id="drping-plans-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Dr Ping plans loaded from the database -->
+                </div>
             </div>
         </section>
 
@@ -1120,7 +1132,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400"><i class="fa-solid fa-users ml-1 text-purple-400"></i>تعداد کاربر:</span>
-                                <span class="font-semibold">${plan.users} کاربره</span>
+                                <span class="font-semibold">${String(plan.name).startsWith('دکترپینگ -') ? 'بدون محدودیت' : plan.users + ' کاربره'}</span>
                             </div>
                         </div>
                     </div>
@@ -1139,7 +1151,7 @@
         }
 
         function renderHomePlans() {
-            const plans = getStoredPlans().filter(p => p.active !== false).slice(0, 3);
+            const plans = getStoredPlans().filter(p => p.active !== false && !String(p.name).startsWith('دکترپینگ -')).slice(0, 3);
             const container = document.getElementById('home-featured-plans');
             if (container) {
                 container.innerHTML = plans.map(p => createPlanCardHtml(p)).join('');
@@ -1147,8 +1159,11 @@
         }
 
         function renderPlansGrid(filter = 'all') {
-            const plans = getStoredPlans().filter(p => p.active !== false);
+            const plans = getStoredPlans().filter(p => p.active !== false && !String(p.name).startsWith('دکترپینگ -'));
+            const drPingPlans = getStoredPlans().filter(p => p.active !== false && String(p.name).startsWith('دکترپینگ -'));
             const container = document.getElementById('plans-grid');
+            const drPingContainer = document.getElementById('drping-plans-grid');
+            if (drPingContainer) drPingContainer.innerHTML = drPingPlans.map(p => createPlanCardHtml(p)).join('');
             
             let filtered = plans;
             if (filter === 'limited') filtered = plans.filter(p => p.volume > 0);
