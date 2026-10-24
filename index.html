@@ -339,6 +339,7 @@
                     <button onclick="filterPlans('unlimited')" id="filter-unlimited" class="px-5 py-2 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition">نامحدود / ویژه</button>
                     <button onclick="filterPlans('special')" id="filter-special" class="px-5 py-2 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition">ویژه 🔥</button>
                     <button onclick="filterPlans('economic')" id="filter-economic" class="px-5 py-2 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition">اقتصادی 💸</button>
+                    <button onclick="document.getElementById('drping-section')?.scrollIntoView({behavior:'smooth',block:'start'})" class="px-5 py-2 rounded-lg text-xs font-bold border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 transition">🩺 دکترپینگ</button>
                 </div>
             </div>
 
@@ -347,8 +348,8 @@
                 <!-- Rendered via Javascript -->
             </div>
 
-            <!-- Dr Ping dedicated plans -->
-            <div class="space-y-5 pt-8 border-t border-cyan-500/20">
+            <!-- Dr Ping dedicated plans: separate section -->
+            <section id="drping-section" class="space-y-5 mt-10 pt-8 border-t-2 border-cyan-400/40 rounded-3xl bg-gradient-to-b from-cyan-950/20 to-transparent p-4 md:p-6 scroll-mt-6">
                 <div class="text-center space-y-2">
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 text-sm font-bold"><i class="fa-solid fa-stethoscope"></i> دکترپینگ</div>
                     <h2 class="text-2xl font-extrabold text-white">پلن‌های دکترپینگ</h2>
@@ -357,7 +358,7 @@
                 <div id="drping-plans-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Dr Ping plans loaded from the database -->
                 </div>
-            </div>
+            </section>
         </section>
 
         <!-- 3. CONNECTION GUIDE VIEW -->
