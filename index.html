@@ -1168,6 +1168,8 @@
             let filtered = plans;
             if (filter === 'limited') filtered = plans.filter(p => p.volume > 0);
             if (filter === 'unlimited') filtered = plans.filter(p => p.volume === 0);
+            if (filter === 'special') filtered = plans.filter(p => /ویژه|special/i.test(p.name + ' ' + p.desc));
+            if (filter === 'economic') filtered = plans.filter(p => /اقتصادی|economic/i.test(p.name + ' ' + p.desc));
 
             if (container) {
                 container.innerHTML = filtered.map(p => createPlanCardHtml(p)).join('');
@@ -1201,7 +1203,7 @@
             const settings = getStoredSettings();
 
             document.getElementById('checkout-plan-title').innerText = plan.name;
-            document.getElementById('checkout-plan-specs').innerText = `${plan.days} روز | ${plan.volume === 0 ? 'نامحدود' : plan.volume + ' گیگابایت'} | ${plan.users} کاربر`;
+            document.getElementById('checkout-plan-specs').innerText = `${plan.days} روز | ${plan.volume === 0 ? 'نامحدود' : plan.volume + ' گیگابایت'} | ${String(plan.name).startsWith('دکترپینگ -') ? 'بدون محدودیت کاربر' : plan.users + ' کاربر'}`;
             document.getElementById('checkout-plan-price').innerText = formatPrice(plan.price);
 
             document.getElementById('checkout-bank-name').innerText = settings.bankName;
