@@ -232,6 +232,10 @@
                         <button onclick="navigateTo('guide')" class="bg-gray-800/80 hover:bg-gray-700 text-gray-200 px-6 py-3.5 rounded-2xl font-semibold text-base transition border border-gray-700">
                             راهنمای نصب و راه‌اندازی
                         </button>
+                        <button data-free-test-button onclick="claimNetShieldFreeTest()" class="bg-emerald-600/90 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-2xl font-bold text-base transition border border-emerald-400/30 shadow-lg shadow-emerald-900/20 flex items-center gap-2">
+                            <i class="fa-solid fa-gift"></i>
+                            <span>دریافت تست رایگان</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1347,6 +1351,39 @@ function editPlan(id){var p=nsPlans.find(function(x){return x.id===id;});if(p)op
 async function deletePlan(id){if(!confirm('پلن حذف شود؟'))return;try{await nsRequireAdmin();var r=await nsSb.from('vpn_plans').delete().eq('id',id);if(r.error)throw r.error;await nsLoad();await renderAdminDashboard();}catch(e){showToast(e.message||'حذف پلن ناموفق بود.','error');}}
 async function savePlanSubmit(e){e.preventDefault();try{await nsRequireAdmin();var id=document.getElementById('plan-edit-id').value;var rawName=document.getElementById('plan-input-name').value.trim();var section=document.getElementById('plan-input-section').value;var cleanName=rawName.replace(/^دکترپینگ -\s*/,'');var finalName=section==='drping'?'دکترپینگ - '+cleanName:cleanName;if(!cleanName)throw new Error('نام پلن را وارد کن.');var p={name:finalName,price_toman:+document.getElementById('plan-input-price').value,duration_days:+document.getElementById('plan-input-days').value,max_devices:+document.getElementById('plan-input-users').value,protocol:document.getElementById('plan-input-protocol').value,description:document.getElementById('plan-input-desc').value.trim(),active:true};var volInput=document.getElementById('plan-input-volume').value;var daysInput=document.getElementById('plan-input-days').value;if(volInput===''||daysInput===''||p.price_toman<0||+daysInput<1||+volInput<0||p.max_devices<1)throw new Error('قیمت، مدت، حجم و تعداد کاربر را بررسی کن.');p.volume_gb=+volInput;var r=id?await nsSb.from('vpn_plans').update(p).eq('id',id):await nsSb.from('vpn_plans').insert(p);if(r.error)throw r.error;closeModal('modal-plan-crud');await renderAdminDashboard();await nsLoad();showToast('پلن ذخیره شد و در بخش انتخاب‌شده نمایش داده می‌شود.');}catch(x){showToast(x.message||'ذخیره پلن ناموفق بود.','error');}}
 async function saveCardSettings(){try{await nsRequireAdmin();var p={card_number:document.getElementById('setting-card-num').value.trim(),cardholder_name:document.getElementById('setting-card-holder').value.trim(),bank_name:document.getElementById('setting-bank-name').value.trim(),updated_at:new Date().toISOString()};var r=await nsSb.from('vpn_payment_settings').update(p).eq('id',1);if(r.error)throw r.error;nsSettings={cardNum:p.card_number,cardHolder:p.cardholder_name,bankName:p.bank_name};showToast('اطلاعات پرداخت ذخیره شد.');}catch(e){showToast(e.message||'ذخیره تنظیمات ناموفق بود.','error');}}
+async function claimNetShieldFreeTest(){
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const initData = tg && tg.initData;
+    if (!initData) {
+        showToast('برای دریافت تست رایگان، فروشگاه را از دکمه داخل ربات تلگرام باز کن.', 'error');
+        return;
+    }
+    const buttons = Array.from(document.querySelectorAll('[data-free-test-button]'));
+    buttons.forEach(function(button){ button.disabled = true; button.dataset.originalText = button.innerHTML; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>در حال بررسی...</span>'; });
+    try {
+        const response = await fetch('https://diapjpkvqaseztvregrq.supabase.co/functions/v1/claim-netshield-free-test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': 'sb_publishable_lQWWNGOGupsMxLPwPlsDag__GtZEdWZ'
+            },
+            body: JSON.stringify({ initData: initData })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok || !result.url) throw new Error(result.error || 'دریافت تست رایگان ناموفق بود.');
+        showToast('لینک تست به این اکانت اختصاص یافت؛ لینک در حال باز شدن است.', 'success');
+        if (tg && typeof tg.openLink === 'function') {
+            tg.openLink(result.url);
+        } else {
+            window.open(result.url, '_blank', 'noopener,noreferrer');
+        }
+    } catch (error) {
+        showToast(error && error.message ? error.message : 'ارتباط با سرور تست رایگان برقرار نشد.', 'error');
+    } finally {
+        buttons.forEach(function(button){ button.disabled = false; if (button.dataset.originalText) button.innerHTML = button.dataset.originalText; });
+    }
+}
+
 window.addEventListener('load',async function(){await nsLoad();try{var s=await nsSb.auth.getSession();if(s.data.session&&await nsIsAdmin(s.data.session.user))nsAdmin=s.data.session.user;}catch(e){console.warn(e);}navigateTo('home');});
 </script>
 </body>
